@@ -20,7 +20,9 @@
     "server": "redis.example.tld",
     "port": 6379,
     "list": "logstash",
+    "eventdir": "/var/log/sensu",
     "type": "sensu-logstash",
+    "servicetype": "someapplication",
     "output": "redis",
     "custom": {
       "thisFieldWillBeMergedIntoTheTopLevelOfOutgoingJSON": {
@@ -32,7 +34,7 @@
 }
 ```
 
-Supported output types: `redis`, `tcp`, `udp`
+Supported output types: `file`, `redis`, `tcp`, `udp`
 
 ## Installation
 

@@ -33,6 +33,7 @@
 require 'sensu-handler'
 require 'redis'
 require 'json'
+require 'fileutils'
 require 'socket'
 require 'time'
 
@@ -77,7 +78,8 @@ class LogstashHandler < Sensu::Handler
       :status        => event_status,
       :flapping      => @event['check']['flapping'],
       :occurrences   => @event['occurrences'],
-      :action        => @event['action']
+      :action        => @event['action'],
+      :servicetype   => @event['client']['component_id']
     }
     logstash_msg[:type] = settings['logstash']['type'] if settings['logstash'].key?('type')
 
@@ -85,6 +87,14 @@ class LogstashHandler < Sensu::Handler
     logstash_msg = logstash_msg.merge(settings['logstash']['custom']) if settings['logstash'].key?('custom') && !settings['logstash']['custom'].empty?
 
     case settings['logstash']['output']
+    when 'file'
+      eventdir = settings['logstash']['eventdir']
+      FileUtils.mkdir_p(eventdir)
+      logfile = File.join(eventdir, 'sensu-events.log')
+      File.open(logfile, 'a') do |f|
+        f << JSON.generate(logstash_msg)
+        f << "\n"
+      end
     when 'redis'
       redis = Redis.new(host: settings['logstash']['server'], port: settings['logstash']['port'])
       redis.lpush(settings['logstash']['list'], logstash_msg.to_json)
